@@ -108,14 +108,22 @@ st.set_page_config(
 
 
 st.title('ISO인증심사신청')
-st.caption('ISO인증심사신청을 위한 정보를 입력해주세요.')
-st.caption('인증심사와 관련한 자세한 사항은 인증심사원이 배정된 후 안내드리겠습니다.')
+st.write('이제 ISO인증 심사를 신청해보세요!')
+st.write('인증심사와 관련한 자세한 사항은 인증심사원이 배정된 후 안내드리겠습니다.')
+st.write(':bulb: 견적번호가 없으신 경우, 클릭해주세요.')
+st.markdown("""
+    <a href="https://iso-quote.streamlit.app/" target="_blank">
+        <button style="color: white; background-color:orange; border: none; padding: 10px 20px; text-align: center; text-decoration: none; display: inline-block; font-size: 16px; margin: 4px 2px; cursor: pointer; border-radius: 10px;">
+            견적확인하기
+        </button>
+    </a>
+    """, unsafe_allow_html=True)
 
 st.divider()
 
 # 회사정보 입력
 st.subheader('[기본정보]')
-st.caption('견적산출 시 발급된 견적번호를 입력하시면 작성하신 정보를 불러옵니다.')
+st.write(':rainbow[견적산출 시 발급된 견적번호를 입력하시면 작성하신 정보를 불러옵니다. 견적신청 시 선택한 사항과 일치하는지 확인해주세요.]')
 
 quote_id = st.text_input(
     '견적번호',
@@ -139,6 +147,7 @@ if quote_id:
         biz_type = db_data[0]['biz_type']
         standards = db_data[0]['standards']
         audit_type = db_data[0]['audit_type']
+        audit_fee = db_data[0]['audit_fee']
 
         # 업종 목록 정의
         biz_type_options = ['제조업', '건설업','기타']
@@ -187,8 +196,9 @@ if quote_id:
         with col2:
             product = st.text_input('제품명', value=product, help='대표적인 제품 및 서비스명을 입력해주세요. (ex. 화장품 제조업)')
             biz_type = st.selectbox('업종', biz_type_options, index=default_biz_type_index, help='자세한 업종정보는 담당 심사원이 상세하게 파악합니다.')
-            standards = st.multiselect('적용표준', standard_options, default=mapped_standards)
-            audit_type = st.selectbox('심사유형', audit_type_options, index=default_audit_type_index)
+            standards = st.multiselect('적용표준', standard_options, default=mapped_standards, disabled=True)
+            audit_type = st.selectbox('심사유형', audit_type_options, index=default_audit_type_index, disabled=True)
+            auidt_fee = st.text_input('심사비', value=f"{int(audit_fee):,}원" ,disabled=True)
 
 
         st.divider()
@@ -206,7 +216,7 @@ if quote_id:
 
             with st.spinner('이메일 전송 중입니다...'):
                 # 최대 시간을 20초로 설정
-                max_time = 20
+                max_time = 25
                 progress_bar = st.progress(0)
 
                 start_time = time.time()
