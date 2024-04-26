@@ -49,6 +49,55 @@ def insert_application(company_name, company_address, company_tel, company_email
     except Exception as e:
         st.error(f'데이터베이스 저장 중 오류가 발생했습니다: {e}')
 
+# 이메일 전송 함수
+load_dotenv()
+
+def send_email_with_attachment(attachment_path, customer_info):
+    # 환경 변수에서 이메일 설정 불러오기
+    from_email = os.getenv('EMAIL_FROM')
+    smtp_password = os.getenv('EMAIL_PASSWORD')
+    smtp_server = os.getenv('SMTP_SERVER')
+    smtp_port = os.getenv('SMTP_PORT')
+
+    # 이메일 메시지 생성
+    msg = EmailMessage()
+    msg.set_content(f'''
+        ISO인증 심사 신청서가 접수되었습니다. 아래 정보를 확인해주세요.\n\n
+        심사비: {customer_info['audit_fee']}\n
+        회사명: {customer_info['name']}\n
+        이메일: {customer_info['email']}\n
+        담당자명: {customer_info['contact_name']}\n
+        연락처: {customer_info['contact']}\n
+        제품명: {customer_info['product']}\n
+        업종: {customer_info['biz_type']}\n
+        적용표준: {customer_info['standards']}\n
+        심사유형: {customer_info['audit_type']}\n
+        견적번호: {customer_info['quote_id']}\n
+        지역: {customer_info['locale']}\n
+        올인원패키지: {customer_info['all_support']}\n
+        문서옵션: {customer_info['documents_support']}\n
+        부적합옵션: {customer_info['nc_support']}\n
+        심사대응옵션: {customer_info['response_support']}\n\n
+
+        첨부된 사업자등록증을 확인해주세요.
+        ''')
+    msg['Subject'] = f"Surprise! {customer_info['name']} ISO인증 심사 심사 신청서 접수 확인"
+    msg['From'] = from_email
+    msg['To'] = 'parksh@kaicert.co.kr'
+
+    # 파일 첨부
+    if attachment_path:
+        with open(attachment_path, 'rb') as f:
+            file_data = f.read()
+            file_name = os.path.basename(attachment_path)
+            msg.add_attachment(file_data, maintype='application', subtype='octet-stream', filename=file_name)
+    
+    # 이메일 전송
+    with smtplib.SMTP_SSL(smtp_server, smtp_port) as server:
+        server.login(from_email, smtp_password)
+        server.send_message(msg)
+        st.session_state.email_sent = True
+        st.success("이메일 전송 완료! 심사원을 배정하겠습니다. 배정된 심사원이 연락드릴 예정입니다.")
 
 # 페이지 설정
 st.set_page_config(
@@ -143,13 +192,46 @@ if quote_id:
 
 
         st.divider()
+        # 사업자등록증 업로드
+        # st.write(":rainbow[아래에서 파일을 드래그하거나 클릭하여 브라우저에서 파일을 선택하세요.]")
+        uploaded_file = st.file_uploader(':sparkles: :rainbow[사업자등록증을 업로드 하면 자동으로 전송 진행됩니다.]', type=['pdf', 'jpg', 'png', 'jpeg'], help='사업자등록증을 업로드해주세요. pdf, jpg, png, jpeg 파일만 업로드 가능합니다.')
+        if uploaded_file is not None:
+            with st.spinner('사업자등록증을 업로드 중입니다...'):
+                time.sleep(3)  # 시뮬레이션을 위한 대기 시간
+                # 파일 저장
+                file_path = os.path.join("temp_files", uploaded_file.name)
+                with open(file_path, "wb") as f:
+                    f.write(uploaded_file.getbuffer())
+                st.success("파일 업로드 성공!")
 
-        # 옵션 입력
-        st.subheader('[옵션선택]')
-        st.caption('견적계산 시 선택하신 옵션이 정확한 지 확인해주세요.')
+            with st.spinner('이메일 전송 중입니다...'):
+                # 최대 시간을 20초로 설정
+                max_time = 20
+                progress_bar = st.progress(0)
 
-        # 멀티 체크박스
-        st.checkbox('견적서 확인', value=True)
+                start_time = time.time()
+                elapsed_time = 0
+
+                # 시간이 최대 시간에 도달할 때까지 프로그레스 바 업데이트
+                while elapsed_time < max_time:
+                    elapsed_time = time.time() - start_time
+                    percent_complete = int((elapsed_time / max_time) * 100)
+                    progress_bar.progress(percent_complete)
+                    time.sleep(0.1)  # 프로그레스 바를 부드럽게 업데이트
+
+                progress_bar.progress(100)  # 마지막으로 프로그레스 바를 100%로 설정
+                progress_bar.empty()  # 프로그레스 바를 화면에서 제거
+
+                # 이메일 관련 정보를 데이터베이스에서 가져옴
+                customer_info = get_applications(quote_id)[0]
+                # st.write(customer_info)
+                
+                # 이메일 전송 함수 호출
+                send_email_with_attachment(file_path, customer_info)
+                
+                if st.session_state.email_sent:
+                    st.balloons()
+                    st.success("모든 처리가 완료되었습니다. 제출해주셔서 감사합니다!")
     else:
         # 데이터가 없는 경우의 처리
         st.error("입력하신 견적번호에 해당하는 정보를 찾을 수 없습니다.")
@@ -159,12 +241,4 @@ else:
 
 st.divider()
 
-# 사업자등록증 업로드
-uploaded_file = st.file_uploader('사업자등록증', type=['pdf', 'jpg', 'png'], help='사업자등록증을 업로드해주세요. PDF 파일만 업로드 가능합니다.')
 
-if uploaded_file is not None:
-    # 파일 저장
-    file_path = os.path.join("temp_files", uploaded_file.name)
-    with open(file_path, "wb") as f:
-        f.write(uploaded_file.getbuffer())
-    st.success("파일 업로드 성공!")
