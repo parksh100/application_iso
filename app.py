@@ -232,7 +232,7 @@ if quote_id:
 
             with st.spinner('이메일 전송 중입니다...'):
                 # 최대 시간을 20초로 설정
-                max_time = 30
+                max_time = 35
                 progress_bar = st.progress(0)
 
                 start_time = time.time()
