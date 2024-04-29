@@ -121,7 +121,6 @@ button_html = """
             border-radius: 10px;
             cursor: pointer;
             text-align: center;
-            display: inline-block;
             text-decoration: none;
         }
     </style>
