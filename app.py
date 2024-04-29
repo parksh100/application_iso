@@ -114,8 +114,8 @@ st.write(':bulb: 견적번호가 없으신 경우, 클릭해주세요.')
 button_html = """
     <style>
         .custom-button {
-            color: black !important;
-            background-color: orange;
+            color: white !important;
+            background-color: black;
             padding: 10px 20px;
             border: none;
             border-radius: 10px;
