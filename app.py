@@ -31,7 +31,7 @@ def get_applications(quote_id):
         conn.close()
         return applications
     except Exception as e:
-        st.error(f'데이터베이스 조회 중 오류가 발생했습니다: {e}')
+        st.error(f'데이터베이스 저장 중 오류가 발생했습니다. 자세한 정보는 관리자에게 문의하세요.')
 
 
 def insert_application(company_name, company_address, company_tel, company_email, company_ceo, company_employee, company_product, company_process, company_standard, company_certificate, company_date):
@@ -111,13 +111,20 @@ st.title('ISO인증심사신청')
 st.write('이제 ISO인증 심사를 신청해보세요!')
 st.write('인증심사와 관련한 자세한 사항은 인증심사원이 배정된 후 안내드리겠습니다.')
 st.write(':bulb: 견적번호가 없으신 경우, 클릭해주세요.')
-st.markdown("""
-    <a href="https://iso-quote.streamlit.app/" target="_blank">
-        <button style="color: white; background-color:orange; border: none; padding: 10px 20px; text-align: center; text-decoration: none; display: inline-block; font-size: 16px; margin: 4px 2px; cursor: pointer; border-radius: 10px;">
-            견적확인하기
-        </button>
-    </a>
-    """, unsafe_allow_html=True)
+button_html = """
+    <style>
+        .custom-button {
+            color: white;
+            background-color: orange;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+    </style>
+    <button onclick="window.location.href='https://iso-quote.streamlit.app/';" class="custom-button">견적 확인하기</button>
+"""
+st.markdown(button_html, unsafe_allow_html=True)
 
 st.divider()
 
@@ -201,7 +208,7 @@ if quote_id:
             biz_type = st.selectbox('업종', biz_type_options, index=default_biz_type_index, help='자세한 업종정보는 담당 심사원이 상세하게 파악합니다.', disabled=True)
             standards = st.multiselect('적용표준', standard_options, default=mapped_standards, disabled=True)
             audit_type = st.selectbox('심사유형', audit_type_options, index=default_audit_type_index, disabled=True)
-            auidt_fee = st.text_input('심사비', value=f"{int(audit_fee):,}원" ,disabled=True)
+            audit_fee  = st.text_input('심사비', value=f"{int(audit_fee):,}원" ,disabled=True)
             all_support = st.checkbox('인증보장 패키지', value=all_support, disabled=True)
             documents_support = st.checkbox('시스템 문선 준비 포함', value=documents_support, disabled=True)
             nc_support = st.checkbox('부적합 시정조치 대응 포함', value=nc_support, disabled=True)
@@ -218,6 +225,7 @@ if quote_id:
                 time.sleep(3)  # 시뮬레이션을 위한 대기 시간
                 # 파일 저장
                 file_path = os.path.join("temp_files", uploaded_file.name)
+                os.makedirs(os.path.dirname(file_path), exist_ok=True)  # 디렉토리가 없으면 생성
                 with open(file_path, "wb") as f:
                     f.write(uploaded_file.getbuffer())
                 st.success("파일 업로드 성공!")
