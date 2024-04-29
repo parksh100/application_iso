@@ -123,15 +123,15 @@ st.divider()
 
 # 회사정보 입력
 st.subheader('[기본정보]')
-st.write(':rainbow[견적산출 시 발급된 견적번호를 입력하시면 작성하신 정보를 불러옵니다. 견적신청 시 선택한 사항과 일치하는지 확인해주세요.]')
+st.write(':rainbow[견적산출 시 발급된 견적번호를 입력하시면 작성하신 정보를 불러옵니다. 견적신청 시 선택한 사항과 일치하는지 확인해주세요. 필요 시 수정해주세요.]')
 
 quote_id = st.text_input(
     '견적번호',
     help='견적계산 시 발급된 견적번호를 입력해주세요.',
 )
 
-# db_data = get_applications(quote_id) if quote_id is not None else None
-# # st.write(db_data)
+db_data = get_applications(quote_id) if quote_id is not None else None
+# st.write(db_data)
 
 if quote_id:
    # 데이터베이스에서 정보 검색
@@ -148,6 +148,10 @@ if quote_id:
         standards = db_data[0]['standards']
         audit_type = db_data[0]['audit_type']
         audit_fee = db_data[0]['audit_fee']
+        all_support = db_data[0]['all_support']
+        documents_support = db_data[0]['documents_support']
+        nc_support = db_data[0]['nc_support']
+        response_support = db_data[0]['response_support']
 
         # 업종 목록 정의
         biz_type_options = ['제조업', '건설업','기타']
@@ -189,16 +193,20 @@ if quote_id:
         with col1:
             company_name = st.text_input('회사명', value=company_name)
             company_email = st.text_input('이메일', value=email, help='모든 안내는 이메일로 전송됩니다. 정확한 이메일 주소를 입력해주시고 가능하면 회사 대표이메일을 입력해주세요.')
-            st.caption('인증심사 관련 안내는 이메일로 전송됩니다. 정확한 이메일 주소를 입력해주세요.')
             contact_name = st.text_input('담당자명', placeholder='홍길동/과장', value=contact_name)
             contact = st.text_input('담당자 연락처', placeholder='010-1234-5678', value=contact)
+            product = st.text_input('제품명', value=product, help='대표적인 제품 및 서비스명을 입력해주세요. (ex. 화장품 제조업)')
 
         with col2:
-            product = st.text_input('제품명', value=product, help='대표적인 제품 및 서비스명을 입력해주세요. (ex. 화장품 제조업)')
-            biz_type = st.selectbox('업종', biz_type_options, index=default_biz_type_index, help='자세한 업종정보는 담당 심사원이 상세하게 파악합니다.')
+            biz_type = st.selectbox('업종', biz_type_options, index=default_biz_type_index, help='자세한 업종정보는 담당 심사원이 상세하게 파악합니다.', disabled=True)
             standards = st.multiselect('적용표준', standard_options, default=mapped_standards, disabled=True)
             audit_type = st.selectbox('심사유형', audit_type_options, index=default_audit_type_index, disabled=True)
             auidt_fee = st.text_input('심사비', value=f"{int(audit_fee):,}원" ,disabled=True)
+            all_support = st.checkbox('인증보장 패키지', value=all_support, disabled=True)
+            documents_support = st.checkbox('시스템 문선 준비 포함', value=documents_support, disabled=True)
+            nc_support = st.checkbox('부적합 시정조치 대응 포함', value=nc_support, disabled=True)
+            response_support = st.checkbox('심사응대 및 대응 포함', value=response_support, disabled=True)
+
 
 
         st.divider()
