@@ -120,9 +120,12 @@ button_html = """
             border: none;
             border-radius: 10px;
             cursor: pointer;
+            text-align: center;
+            display: inline-block;
+            text-decoration: none;
         }
     </style>
-    <button onclick="window.location.href='https://iso-quote.streamlit.app/';" class="custom-button">견적 확인하기</button>
+    <a href="https://iso-quote.streamlit.app/" target="_blank" class="custom-button">견적 확인하기</a>
 """
 st.markdown(button_html, unsafe_allow_html=True)
 
